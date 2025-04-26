@@ -14,14 +14,26 @@ import {
   Tabs,
   Avatar,
   Stack,
-  Badge
+  Badge,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import { 
   Search as SearchIcon,
   FilterList as FilterIcon,
   TrendingUp as TrendingIcon,
   AccessTime as NewestIcon,
-  StarOutline as UnansweredIcon
+  StarOutline as UnansweredIcon,
+  ArrowRightAlt as ArrowIcon,
+  CheckCircle as CheckIcon,
+  Info as InfoIcon,
+  Warning as WarningIcon,
+  LooksOne as NumberOneIcon,
+  LooksTwo as NumberTwoIcon,
+  Looks3 as NumberThreeIcon,
+  Looks4 as NumberFourIcon,
+  Looks5 as NumberFiveIcon,
+  Looks6 as NumberSixIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -174,25 +186,424 @@ const QuestionsListPage: React.FC = () => {
     }
   };
 
-  // Custom renderer for code blocks in markdown
+  // Custom renderer for markdown elements with futuristic styling
   const renderers = {
-    code({ node, inline, className, children, ...props }: any) {
-      const match = /language-(\w+)/.exec(className || '');
-      return !inline && match ? (
-        <SyntaxHighlighter
-          style={atomDark}
-          language={match[1]}
-          PreTag="div"
-          {...props}
+    h1: ({ node, children, ...props }: any) => (
+      <Typography 
+        variant="h4" 
+        component="h1" 
+        {...props} 
+        sx={{ 
+          mb: 2, 
+          mt: 3, 
+          fontWeight: 600, 
+          background: 'linear-gradient(90deg, #03e9f4, #6e42f5)',
+          backgroundClip: 'text',
+          color: 'transparent',
+          display: 'inline-block',
+          fontFamily: '"Orbitron", sans-serif',
+          position: 'relative',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: -4,
+            left: 0,
+            width: '30%',
+            height: 2,
+            background: 'linear-gradient(90deg, #03e9f4, transparent)',
+          }
+        }}
+      >
+        {children}
+      </Typography>
+    ),
+    h2: ({ node, children, ...props }: any) => (
+      <Typography 
+        variant="h5" 
+        component="h2" 
+        {...props} 
+        sx={{ 
+          mb: 2, 
+          mt: 3, 
+          fontWeight: 600, 
+          color: '#03e9f4',
+          fontFamily: '"Orbitron", sans-serif',
+          position: 'relative',
+          paddingLeft: 2,
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            left: 0,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: 4,
+            height: '80%',
+            background: 'linear-gradient(180deg, #03e9f4, transparent)',
+            borderRadius: 4
+          }
+        }}
+      >
+        {children}
+      </Typography>
+    ),
+    h3: ({ node, children, ...props }: any) => (
+      <Typography 
+        variant="h6" 
+        component="h3" 
+        {...props} 
+        sx={{ 
+          mb: 1.5, 
+          mt: 2, 
+          fontWeight: 500, 
+          color: '#6e42f5',
+          fontFamily: '"Orbitron", sans-serif' 
+        }}
+      >
+        {children}
+      </Typography>
+    ),
+    p: ({ node, children, ...props }: any) => {
+      // Check if this paragraph is part of a list or standalone
+      const parentIsLi = node?.parent?.tagName === 'li';
+      if (parentIsLi) return <>{children}</>;
+      
+      // Check if paragraph starts with certain patterns to add special styling
+      const paragraphText = children?.toString() || '';
+      
+      if (paragraphText.startsWith('Note:') || paragraphText.startsWith('Important:')) {
+        return (
+          <Box 
+            sx={{ 
+              mb: 2,
+              p: 2,
+              borderRadius: 1,
+              backgroundColor: 'rgba(3, 233, 244, 0.1)',
+              border: '1px solid rgba(3, 233, 244, 0.3)',
+              position: 'relative',
+              paddingLeft: 4
+            }}
+          >
+            <InfoIcon 
+              sx={{ 
+                position: 'absolute',
+                left: 10,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#03e9f4'
+              }} 
+            />
+            <Typography variant="body1" {...props} sx={{ color: 'text.primary' }}>
+              {children}
+            </Typography>
+          </Box>
+        );
+      }
+      
+      if (paragraphText.startsWith('Warning:') || paragraphText.startsWith('Caution:')) {
+        return (
+          <Box 
+            sx={{ 
+              mb: 2,
+              p: 2,
+              borderRadius: 1,
+              backgroundColor: 'rgba(255, 152, 0, 0.1)',
+              border: '1px solid rgba(255, 152, 0, 0.3)',
+              position: 'relative',
+              paddingLeft: 4
+            }}
+          >
+            <WarningIcon 
+              sx={{ 
+                position: 'absolute',
+                left: 10,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#ff9800'
+              }} 
+            />
+            <Typography variant="body1" {...props} sx={{ color: 'text.primary' }}>
+              {children}
+            </Typography>
+          </Box>
+        );
+      }
+      
+      // Regular paragraph
+      return (
+        <Typography 
+          variant="body1" 
+          component="p" 
+          {...props} 
+          sx={{ 
+            mb: 2,
+            lineHeight: 1.7,
+            color: 'text.primary'
+          }}
         >
-          {String(children).replace(/\n$/, '')}
-        </SyntaxHighlighter>
-      ) : (
-        <code className={className} {...props}>
           {children}
-        </code>
+        </Typography>
       );
-    }
+    },
+    ul: ({ node, children, ...props }: any) => (
+      <Box 
+        component="ul" 
+        {...props} 
+        sx={{ 
+          pl: 0, 
+          mb: 3,
+          listStyleType: 'none'
+        }}
+      >
+        {children}
+      </Box>
+    ),
+    ol: ({ node, children, ...props }: any) => {
+      // For ordered lists, we'll style them differently
+      return (
+        <Box 
+          component="ol" 
+          {...props} 
+          sx={{ 
+            pl: 0, 
+            mb: 3,
+            listStyleType: 'none',
+            counterReset: 'step-counter'
+          }}
+        >
+          {children}
+        </Box>
+      );
+    },
+    li: ({ node, children, ...props }: any) => {
+      // Get the parent element type to determine if this is part of an ordered list
+      const parentName = node?.parent?.tagName;
+      const isOrdered = parentName === 'ol';
+      
+      // Get index for numbering in ordered lists
+      const siblingIndex = node?.index || 0;
+      
+      // Choose icon based on ordered/unordered and index
+      let icon;
+      
+      if (isOrdered) {
+        const numberIcons = [
+          <NumberOneIcon key="1" sx={{ color: '#03e9f4' }} />,
+          <NumberTwoIcon key="2" sx={{ color: '#03e9f4' }} />,
+          <NumberThreeIcon key="3" sx={{ color: '#03e9f4' }} />,
+          <NumberFourIcon key="4" sx={{ color: '#03e9f4' }} />,
+          <NumberFiveIcon key="5" sx={{ color: '#03e9f4' }} />,
+          <NumberSixIcon key="6" sx={{ color: '#03e9f4' }} />
+        ];
+        icon = siblingIndex < 6 ? numberIcons[siblingIndex] : (
+          <Box
+            sx={{
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              backgroundColor: 'rgba(3, 233, 244, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#03e9f4',
+              fontWeight: 'bold',
+              fontSize: '0.8rem'
+            }}
+          >
+            {siblingIndex + 1}
+          </Box>
+        );
+      } else {
+        icon = <ArrowIcon sx={{ color: '#03e9f4', transform: 'rotate(45deg)' }} />;
+      }
+      
+      return (
+        <ListItem 
+          sx={{ 
+            pl: 0, 
+            pr: 0,
+            py: 0.75,
+            alignItems: 'flex-start'
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 36, mt: 0.5 }}>
+            {icon}
+          </ListItemIcon>
+          <ListItemText 
+            primary={
+              <Box sx={{ color: 'text.primary' }}>
+                {children}
+              </Box>
+            }
+            sx={{ m: 0 }}
+          />
+        </ListItem>
+      );
+    },
+    blockquote: ({ node, children, ...props }: any) => (
+      <Box 
+        {...props} 
+        sx={{ 
+          borderLeft: '3px solid #03e9f4',
+          pl: 2,
+          ml: 0,
+          my: 2,
+          py: 0.5,
+          position: 'relative',
+          '&::before': {
+            content: '"""',
+            position: 'absolute',
+            left: -12,
+            top: -10,
+            fontFamily: 'Georgia, serif',
+            fontSize: '2rem',
+            color: '#03e9f4',
+            opacity: 0.7
+          },
+          '&::after': {
+            content: '"""',
+            position: 'absolute',
+            right: 0,
+            bottom: -20,
+            fontFamily: 'Georgia, serif',
+            fontSize: '2rem',
+            color: '#03e9f4',
+            opacity: 0.7
+          }
+        }}
+      >
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            fontStyle: 'italic',
+            color: 'text.secondary'
+          }}
+        >
+          {children}
+        </Typography>
+      </Box>
+    ),
+    a: ({ node, children, href, ...props }: any) => (
+      <Box 
+        component="a" 
+        href={href} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        {...props} 
+        sx={{ 
+          color: '#03e9f4',
+          textDecoration: 'none',
+          position: 'relative',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: -2,
+            left: 0,
+            width: '100%',
+            height: 1,
+            background: 'linear-gradient(90deg, #03e9f4, transparent)',
+            transition: 'all 0.3s ease',
+          },
+          '&:hover': {
+            textShadow: '0 0 8px rgba(3, 233, 244, 0.4)',
+            '&::after': {
+              height: 2,
+            }
+          }
+        }}
+      >
+        {children}
+      </Box>
+    ),
+    code: ({ node, inline, className, children, ...props }: any) => {
+      const match = /language-(\w+)/.exec(className || '');
+      
+      return !inline && match ? (
+        <Box sx={{ mb: 3, mt: 3, borderRadius: 2, overflow: 'hidden', position: 'relative' }}>
+          <Box sx={{ 
+            position: 'absolute', 
+            top: 0, 
+            right: 0, 
+            backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+            px: 2, 
+            py: 0.5,
+            borderBottomLeftRadius: 8,
+            fontSize: '0.75rem',
+            color: '#03e9f4',
+            fontFamily: '"Roboto Mono", monospace',
+            letterSpacing: 1
+          }}>
+            {match[1].toUpperCase()}
+          </Box>
+          <SyntaxHighlighter
+            style={atomDark}
+            language={match[1]}
+            PreTag="div"
+            {...props}
+            customStyle={{
+              borderRadius: '8px',
+              padding: '16px',
+              backgroundColor: 'rgba(20, 20, 30, 0.8)',
+              border: '1px solid rgba(3, 233, 244, 0.2)',
+              marginTop: 0,
+              marginBottom: 0
+            }}
+          >
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
+        </Box>
+      ) : (
+        <Box 
+          component="code" 
+          className={className} 
+          {...props}
+          sx={{
+            fontFamily: '"Roboto Mono", monospace',
+            backgroundColor: 'rgba(3, 233, 244, 0.1)',
+            padding: '2px 6px',
+            borderRadius: 1,
+            fontSize: '0.9rem',
+            color: '#03e9f4',
+            wordBreak: 'break-word'
+          }}
+        >
+          {children}
+        </Box>
+      );
+    },
+    strong: ({ node, children, ...props }: any) => (
+      <Box 
+        component="strong" 
+        {...props} 
+        sx={{ 
+          fontWeight: 'bold',
+          color: '#03e9f4'
+        }}
+      >
+        {children}
+      </Box>
+    ),
+    em: ({ node, children, ...props }: any) => (
+      <Box 
+        component="em" 
+        {...props} 
+        sx={{ 
+          fontStyle: 'italic',
+          color: '#bb86fc'
+        }}
+      >
+        {children}
+      </Box>
+    ),
+    hr: () => (
+      <Divider 
+        sx={{ 
+          my: 3,
+          height: 1,
+          background: 'linear-gradient(90deg, transparent, #03e9f4, transparent)',
+          border: 'none'
+        }} 
+      />
+    )
   };
 
   return (
