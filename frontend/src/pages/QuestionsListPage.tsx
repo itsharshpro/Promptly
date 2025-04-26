@@ -27,6 +27,9 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import apiService from '../services/api';
 import { Question, User } from '../types';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const QuestionsListPage: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -168,6 +171,27 @@ const QuestionsListPage: React.FC = () => {
     visible: {
       y: 0,
       opacity: 1
+    }
+  };
+
+  // Custom renderer for code blocks in markdown
+  const renderers = {
+    code({ node, inline, className, children, ...props }: any) {
+      const match = /language-(\w+)/.exec(className || '');
+      return !inline && match ? (
+        <SyntaxHighlighter
+          style={atomDark}
+          language={match[1]}
+          PreTag="div"
+          {...props}
+        >
+          {String(children).replace(/\n$/, '')}
+        </SyntaxHighlighter>
+      ) : (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
     }
   };
 
@@ -360,19 +384,32 @@ const QuestionsListPage: React.FC = () => {
                         </Typography>
 
                         {question.response && (
-                          <Typography 
-                            variant="body2" 
-                            color="text.secondary"
+                          <Box 
+                            component="div" 
                             sx={{ 
                               mb: 2,
                               display: '-webkit-box',
                               overflow: 'hidden',
                               WebkitBoxOrient: 'vertical',
                               WebkitLineClamp: 2,
+                              color: 'text.secondary',
+                              fontSize: '0.875rem',
+                              lineHeight: 1.43,
+                              '& p': { margin: 0 },
+                              '& ul, & ol': { margin: 0, paddingLeft: 2 },
+                              '& code': {
+                                fontFamily: 'monospace',
+                                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                                padding: '2px 4px',
+                                borderRadius: 1,
+                                fontSize: '0.8125rem',
+                              }
                             }}
                           >
-                            {question.response.answer}
-                          </Typography>
+                            <ReactMarkdown components={renderers}>
+                              {question.response.answer}
+                            </ReactMarkdown>
+                          </Box>
                         )}
 
                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>

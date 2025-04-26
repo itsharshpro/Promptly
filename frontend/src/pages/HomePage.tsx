@@ -25,6 +25,9 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../services/api';
 import { LLMResponse } from '../types';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const HomePage: React.FC = () => {
   const [question, setQuestion] = useState('');
@@ -61,6 +64,27 @@ const HomePage: React.FC = () => {
   const handleNewQuestion = () => {
     setQuestion('');
     setResponse(null);
+  };
+
+  // Custom renderer for code blocks in markdown
+  const renderers = {
+    code({ node, inline, className, children, ...props }: any) {
+      const match = /language-(\w+)/.exec(className || '');
+      return !inline && match ? (
+        <SyntaxHighlighter
+          style={atomDark}
+          language={match[1]}
+          PreTag="div"
+          {...props}
+        >
+          {String(children).replace(/\n$/, '')}
+        </SyntaxHighlighter>
+      ) : (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
+    }
   };
 
   const containerVariants = {
@@ -285,9 +309,11 @@ const HomePage: React.FC = () => {
               
               <Divider sx={{ mb: 2, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
               
-              <Typography variant="body1" sx={{ mb: 3 }}>
-                {response.answer}
-              </Typography>
+              <Box sx={{ fontFamily: '"Roboto", sans-serif' }}>
+                <ReactMarkdown components={renderers}>
+                  {response.answer}
+                </ReactMarkdown>
+              </Box>
               
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <Button
